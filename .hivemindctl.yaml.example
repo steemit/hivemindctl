@@ -1,0 +1,4 @@
+PG_DSN: "postgresql://steem:123456@172.20.0.2:5432/hivedb"
+API_URL: "https://api.steemit.com"
+SEARCH_STEP: 1000000
+PROCESS_STEP: 100
