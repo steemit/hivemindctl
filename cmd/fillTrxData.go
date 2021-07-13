@@ -190,6 +190,9 @@ func getBlock(blockNum string) {
 }
 
 func insertBulkData(data *[]HiveTrxidBlockNum) {
+	if len(*data) == 0 {
+		return
+	}
 	fmt.Println("insert from block num: ", (*data)[0].BlockNum)
 	db.Create(data)
 }
