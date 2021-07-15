@@ -85,8 +85,9 @@ var fillTrxData = &cobra.Command{
 				if math.Mod(float64(temp), float64(processStep)) == 0.0 {
 					// fmt.Println("wait")
 					wg.Wait()
+					fmt.Println("count waitInsertData: ", len(waitInsertData))
 					insertBulkData(&waitInsertData)
-					waitInsertData = waitInsertData[:0]
+					waitInsertData = make([]HiveTrxidBlockNum, 0)
 					temp = 1
 				} else {
 					temp++
@@ -96,7 +97,7 @@ var fillTrxData = &cobra.Command{
 			fmt.Println("wait out")
 			wg.Wait()
 			insertBulkData(&waitInsertData)
-			waitInsertData = waitInsertData[:0]
+			waitInsertData = make([]HiveTrxidBlockNum, 0)
 			retryTimes++
 		}
 	},
@@ -185,7 +186,8 @@ func getBlock(blockNum string) {
 		return
 	}
 	for _, trxId := range res.Result.TransactionIds {
-		waitInsertData = append(waitInsertData, HiveTrxidBlockNum{&trxId, tmpBlockNum})
+		trxIdFinal := trxId
+		waitInsertData = append(waitInsertData, HiveTrxidBlockNum{&trxIdFinal, tmpBlockNum})
 	}
 }
 
@@ -194,7 +196,19 @@ func insertBulkData(data *[]HiveTrxidBlockNum) {
 		return
 	}
 	fmt.Println("insert from block num: ", (*data)[0].BlockNum)
-	db.Create(data)
+	if err := db.Create(data).Error; err != nil {
+		fmt.Println("Insert Data Failed: ", err)
+		fmt.Println("=====>")
+		for _, row := range *data {
+			if row.TrxId == nil {
+				fmt.Println("null", row.BlockNum)
+			} else {
+				fmt.Println(*row.TrxId, row.BlockNum)
+			}
+		}
+		fmt.Println("<=====")
+		return
+	}
 }
 
 // ------ Struct -------
